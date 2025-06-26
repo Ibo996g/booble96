@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOBLE Browser</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS for animations and futuristic theme -->
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+        .animate-blob {
+            animation: blob 10s infinite;
+        }
+        .animation-delay-2000 { animation-delay: -2s; }
+        .animation-delay-4000 { animation-delay: -4s; }
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Hide scrollbar for the main body but allow scrolling */
+        .results-container::-webkit-scrollbar { display: none; }
+        .results-container { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="h-screen font-sans text-gray-200 bg-gray-900 overflow-hidden">
+    <!-- Animated Background -->
+    <div id="animated-background" class="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden bg-gray-900">
+        <div class="absolute w-[40vw] h-[40vw] max-w-lg max-h-lg bg-purple-600 rounded-full -top-1/4 -left-1/4 filter blur-3xl opacity-40 animate-blob"></div>
+        <div class="absolute w-[35vw] h-[35vw] max-w-md max-h-md bg-cyan-500 rounded-full -bottom-1/4 -right-1/4 filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
+        <div class="absolute w-[30vw] h-[30vw] max-w-sm max-h-sm bg-indigo-600 rounded-full bottom-1/4 left-1/4 filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+    </div>
+
+    <!-- In-App Browser View (Initially Hidden) -->
+    <div id="browser-view" class="hidden absolute inset-0 bg-gray-900/50 backdrop-blur-md z-50 flex-col animate-fade-in-up">
+        <header class="flex-shrink-0 bg-gray-800/80 p-2 flex items-center gap-2 border-b border-purple-500/20">
+            <button id="browser-back-btn" class="p-2 rounded-lg hover:bg-gray-700 transition-colors"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7 7-7-7 7-7"/></svg></button>
+            <div id="browser-title" class="flex-grow bg-gray-900/70 p-2 rounded-md text-sm truncate text-gray-300"></div>
+            <a id="browser-new-tab-btn" href="#" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg hover:bg-gray-700 transition-colors" title="فتح في تبويب جديد"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></a>
+        </header>
+        <main id="browser-content" class="flex-grow relative bg-black">
+            <!-- Iframe will be here -->
+        </main>
+    </div>
+
+    <!-- Main Container -->
+    <div id="app-container" class="relative w-full h-full flex flex-col justify-center items-center transition-all duration-700 ease-in-out">
+        
+        <!-- Initial Search View -->
+        <div id="initial-view" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-4 text-center transition-all duration-700 ease-in-out">
+            <h1 class="text-8xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 drop-shadow-lg animate-fade-in-up">BOOBLE</h1>
+            <div class="relative animate-fade-in-up" style="animation-delay: 200ms;">
+                <input id="initial-search-input" type="text" placeholder="استكشف الكون..." class="w-full text-center text-lg p-4 bg-gray-800/50 border border-purple-500/30 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-2xl backdrop-blur-sm">
+            </div>
+            <div id="auth-container" class="mt-8 animate-fade-in-up" style="animation-delay: 400ms;">
+                <!-- Auth content will be injected here -->
+            </div>
+        </div>
+
+        <!-- Results View (Initially Hidden) -->
+        <div id="results-view" class="w-full h-full flex-col transition-opacity duration-700 ease-in-out opacity-0 pointer-events-none hidden">
+            <header class="p-3 bg-gray-900/50 backdrop-blur-md sticky top-0 z-40 border-b border-purple-500/20">
+                <div class="flex items-center gap-4 max-w-7xl mx-auto">
+                    <span id="back-to-home-btn" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 cursor-pointer">B</span>
+                    <input id="results-search-input" type="text" class="w-full bg-gray-800/80 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                    <div id="results-auth-icon" class="flex-shrink-0"></div>
+                </div>
+                <div id="tabs-container" class="flex justify-center items-center gap-4 mt-3 max-w-7xl mx-auto border-t border-purple-500/10 pt-3">
+                    <!-- Tabs will be injected here -->
+                </div>
+            </header>
+            <main id="results-container" class="flex-grow overflow-y-auto results-container">
+                <!-- Results will be injected here -->
+            </main>
+            <footer class="flex-shrink-0 p-2 bg-black/30 text-center text-xs text-gray-500">
+                جميع الحقوق محفوظة لدى BOOBLE © 2025 | للتواصل: <a href="https://t.me/iifs6" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">iifs6@</a>
+            </footer>
+        </div>
+    </div>
+
+    <!-- The JavaScript Logic -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // --- API & Firebase Config ---
+        const API_KEY = "AIzaSyA364Lnl-M810u3fGXYNM-YC_6XovkgkaM";
+        const SEARCH_ENGINE_ID = "d25bee40b2959406f";
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        // --- DOM Elements ---
+        const appContainer = document.getElementById('app-container');
+        const initialView = document.getElementById('initial-view');
+        const resultsView = document.getElementById('results-view');
+        const browserView = document.getElementById('browser-view');
+        const initialSearchInput = document.getElementById('initial-search-input');
+        const resultsSearchInput = document.getElementById('results-search-input');
+        const authContainer = document.getElementById('auth-container');
+        const resultsAuthIcon = document.getElementById('results-auth-icon');
+        const tabsContainer = document.getElementById('tabs-container');
+        const resultsContainer = document.getElementById('results-container');
+        const browserBackBtn = document.getElementById('browser-back-btn');
+        const browserTitle = document.getElementById('browser-title');
+        const browserNewTabBtn = document.getElementById('browser-new-tab-btn');
+        const browserContent = document.getElementById('browser-content');
+        const backToHomeBtn = document.getElementById('back-to-home-btn');
+
+
+        // --- State Variables ---
+        let state = {
+            searchType: 'web',
+            query: '',
+            currentUser: null,
+            auth: null
+        };
+
+        // --- Firebase Initialization ---
+        try {
+            const app = initializeApp(firebaseConfig);
+            state.auth = getAuth(app);
+            onAuthStateChanged(state.auth, async (user) => {
+                if (user) {
+                    state.currentUser = user;
+                } else if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                       const userCredential = await signInWithCustomToken(state.auth, __initial_auth_token);
+                       state.currentUser = userCredential.user;
+                    } catch (e) {
+                       console.error("Token sign-in failed", e);
+                       state.currentUser = null;
+                    }
+                } else {
+                    state.currentUser = null;
+                }
+                updateAuthUI();
+            });
+        } catch (e) {
+            console.error("Firebase init failed", e);
+            authContainer.innerHTML = `<p class="text-red-500 text-xs">فشل تهيئة التطبيق</p>`;
+        }
+        
+        // --- UI Update Functions ---
+        function updateAuthUI() {
+            authContainer.innerHTML = '';
+            resultsAuthIcon.innerHTML = '';
+
+            if (state.currentUser) {
+                const userInfo = `
+                    <div class="flex justify-center items-center gap-3">
+                        <img src="${state.currentUser.photoURL}" alt="${state.currentUser.displayName}" class="w-8 h-8 rounded-full" />
+                        <span class="text-sm">مرحباً, ${state.currentUser.displayName}</span>
+                        <button id="signout-btn" class="text-xs text-red-400 hover:underline">(خروج)</button>
+                    </div>`;
+                authContainer.innerHTML = userInfo;
+                resultsAuthIcon.innerHTML = `<img src="${state.currentUser.photoURL}" alt="profile" class="w-8 h-8 rounded-full" />`;
+
+                document.getElementById('signout-btn')?.addEventListener('click', handleSignOut);
+
+            } else {
+                authContainer.innerHTML = `
+                    <div>
+                        <button id="signin-btn" class="bg-white/10 border border-white/20 backdrop-blur-md text-white py-2 px-6 rounded-full hover:bg-white/20 transition-colors">
+                           تسجيل الدخول بحساب جوجل
+                        </button>
+                        <p id="auth-error" class="text-red-400 text-xs mt-2"></p>
+                    </div>`;
+                document.getElementById('signin-btn').addEventListener('click', handleGoogleSignIn);
+            }
+        }
+        
+        function updateTabsUI() {
+            const tabs = [
+                { type: 'web', label: 'الويب', icon: `<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>` },
+                { type: 'image', label: 'الصور', icon: `<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>` },
+                { type: 'video', label: 'فيديو', icon: `<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>` },
+                { type: 'books', label: 'كتب', icon: `<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>` }
+            ];
+            tabsContainer.innerHTML = tabs.map(tab => {
+                const isActive = state.searchType === tab.type;
+                const activeClasses = 'text-cyan-400 bg-cyan-900/50';
+                const inactiveClasses = 'text-gray-400 hover:text-white hover:bg-gray-700/50';
+                return `<button data-type="${tab.type}" class="tab-btn flex items-center gap-2 p-2 rounded-lg text-sm font-semibold transition-all duration-300 ${isActive ? activeClasses : inactiveClasses}">
+                            ${tab.icon} ${tab.label}
+                        </button>`;
+            }).join('');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                state.searchType = e.currentTarget.dataset.type;
+                updateTabsUI();
+                if (state.query.trim()) {
+                    handleSearch();
+                }
+            }));
+        }
+
+        // --- Core Logic ---
+        function showResultsView(show) {
+            if (show) {
+                appContainer.classList.remove('justify-center', 'items-center');
+                appContainer.classList.add('justify-start');
+                initialView.classList.add('opacity-0', 'scale-50', 'pointer-events-none');
+                resultsView.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+                resultsView.classList.add('flex');
+            } else {
+                appContainer.classList.add('justify-center', 'items-center');
+                appContainer.classList.remove('justify-start');
+                initialView.classList.remove('opacity-0', 'scale-50', 'pointer-events-none');
+                resultsView.classList.add('hidden', 'opacity-0', 'pointer-events-none');
+            }
+        }
+
+        async function handleSearch() {
+            if (!state.query.trim()) return;
+            
+            showResultsView(true);
+            resultsContainer.innerHTML = `<div class="flex justify-center items-center h-full"><div class="w-12 h-12 border-4 border-t-transparent border-cyan-400 rounded-full animate-spin"></div></div>`;
+
+            let finalQuery = state.query;
+            if (state.searchType === 'video') finalQuery = `${state.query} "video"`;
+            if (state.searchType === 'books') finalQuery = `${state.query} "book"|"pdf"|"epub"`;
+
+            let url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(finalQuery)}`;
+            if (state.searchType === 'image') {
+                url += '&searchType=image';
+            }
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+                if (!data.items || data.items.length === 0) throw new Error("لم يتم العثور على نتائج.");
+
+                renderResults(data.items);
+            } catch (e) {
+                resultsContainer.innerHTML = `<div class="text-center p-8 text-red-400 font-semibold">حدث خطأ: ${e.message}</div>`;
+            }
+        }
+        
+        function renderResults(items) {
+            resultsContainer.innerHTML = '';
+            
+            if (state.searchType === 'image') {
+                const grid = document.createElement('div');
+                grid.className = 'p-4';
+                grid.style.columnGap = '1rem';
+                grid.style.columns = '200px';
+                items.forEach((item, index) => {
+                    const button = document.createElement('button');
+                    button.className = "group relative overflow-hidden rounded-lg shadow-lg mb-4 break-inside-avoid animate-fade-in-up block w-full text-left";
+                    button.style.animationDelay = `${index * 50}ms`;
+                    button.onclick = () => showBrowserView(item.image.contextLink, item.title);
+                    button.innerHTML = `
+                        <img src="${item.link}" alt="${item.title}" class="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-2">
+                            <p class="text-white text-xs font-semibold truncate opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform group-hover:translate-y-0 translate-y-2">${item.title}</p>
+                        </div>`;
+                    grid.appendChild(button);
+                });
+                resultsContainer.appendChild(grid);
+            } else {
+                 const list = document.createElement('div');
+                 list.className = 'p-4 space-y-4';
+                 items.forEach((item, index) => {
+                     const div = document.createElement('div');
+                     div.className = "bg-gray-800/50 border border-purple-500/20 p-4 rounded-xl shadow-lg hover:shadow-cyan-500/10 hover:border-cyan-500/30 transition-all duration-300 animate-fade-in-up";
+                     div.style.animationDelay = `${index * 50}ms`;
+                     div.innerHTML = `
+                        <button class="w-full text-right link-btn" data-url="${item.link}" data-title="${item.title}">
+                            <h3 class="text-lg font-semibold text-cyan-400 hover:underline pointer-events-none">${item.title}</h3>
+                        </button>
+                        <p class="text-sm text-purple-400 my-1 truncate pointer-events-none">${item.link}</p>
+                        <p class="text-gray-300 text-sm pointer-events-none">${item.snippet || ''}</p>`;
+                     list.appendChild(div);
+                 });
+                 resultsContainer.appendChild(list);
+                 document.querySelectorAll('.link-btn').forEach(btn => btn.addEventListener('click', e => {
+                    showBrowserView(e.currentTarget.dataset.url, e.currentTarget.dataset.title);
+                 }));
+            }
+        }
+        
+        function showBrowserView(url, title) {
+            browserTitle.textContent = title || url;
+            browserNewTabBtn.href = url;
+            browserContent.innerHTML = ''; // Clear previous content
+
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.className = "w-full h-full border-none";
+            iframe.sandbox = "allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts";
+            iframe.title = title;
+            
+            let iframeError = false;
+            
+            iframe.onload = () => {
+                try {
+                    // This will throw error on cross-origin, which is fine.
+                    // If no error, check if it's an empty page, which is bad.
+                    if (iframe.contentDocument && iframe.contentDocument.body.childNodes.length === 0) {
+                        iframeError = true;
+                    }
+                } catch (e) {
+                   // This is expected for cross-origin sites. Not an error.
+                }
+                
+                if (iframeError) {
+                    renderBrowserError(url);
+                }
+            };
+            
+            // Fallback timer for sites that block completely (don't even fire onload)
+            setTimeout(() => {
+                if (!iframe.contentDocument) {
+                     renderBrowserError(url);
+                }
+            }, 3000);
+
+            browserContent.appendChild(iframe);
+            browserView.classList.remove('hidden');
+            browserView.classList.add('flex');
+        }
+
+        function renderBrowserError(url) {
+            browserContent.innerHTML = `
+                <div class="absolute inset-0 flex flex-col justify-center items-center text-center p-4 bg-black">
+                    <svg class="w-16 h-16 text-red-500 mb-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <h3 class="text-2xl font-bold text-red-400">فشل تحميل المحتوى</h3>
+                    <p class="text-gray-300 mt-2 max-w-md">هذا الموقع يمنع عرضه داخل تطبيقات أخرى للحفاظ على أمانه. هذه ميزة أمان وليست خطأ.</p>
+                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="mt-6 bg-cyan-500 text-black font-bold py-2 px-6 rounded-full hover:bg-cyan-400 transition-colors">
+                        فتح في تبويب جديد
+                    </a>
+                </div>
+            `;
+        }
+
+        // --- Event Handlers ---
+        async function handleGoogleSignIn() {
+            if (!state.auth) return;
+            const authErrorEl = document.getElementById('auth-error');
+            if (authErrorEl) authErrorEl.textContent = '';
+            
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(state.auth, provider);
+            } catch (error) {
+                console.error("Google Sign-In Error:", error.code, error.message);
+                if (authErrorEl) {
+                    if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+                        authErrorEl.textContent = "تم منع نافذة الدخول. الرجاء السماح بالنوافذ المنبثقة.";
+                    } else {
+                        authErrorEl.textContent = "فشل تسجيل الدخول. حاول مرة أخرى.";
+                    }
+                }
+            }
+        };
+        
+        async function handleSignOut() {
+            if (!state.auth) return;
+            await signOut(state.auth);
+        };
+        
+        function handleSearchInput(e) {
+            const query = e.target.value;
+            state.query = query;
+            if (e.target.id === 'initial-search-input') {
+                resultsSearchInput.value = query;
+            } else {
+                initialSearchInput.value = query;
+            }
+
+            if(e.key === 'Enter') {
+                handleSearch();
+            }
+        }
+
+        // --- Initial Setup & Event Listeners ---
+        initialSearchInput.addEventListener('keyup', handleSearchInput);
+        resultsSearchInput.addEventListener('keyup', handleSearchInput);
+        
+        backToHomeBtn.addEventListener('click', () => {
+            showResultsView(false);
+            state.query = '';
+            initialSearchInput.value = '';
+            resultsSearchInput.value = '';
+            resultsContainer.innerHTML = '';
+        });
+
+        browserBackBtn.addEventListener('click', () => {
+            browserView.classList.add('hidden');
+            browserView.classList.remove('flex');
+        });
+
+        // Initial UI render
+        updateAuthUI();
+        updateTabsUI();
+    </script>
+</body>
+</html>
